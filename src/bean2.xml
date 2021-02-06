@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+<!--提取list集合类型的注入-->
+    <util:list id="booklist">
+        <value>易筋经</value>
+        <value>九阳神功</value>
+        <value>玉女心经</value>
+    </util:list>
+    <!--提取list集合类型属性注入使用-->
+    <bean id="book" class="zh.spring5.collectiontype.Book" scope="prototype">
+        <property name="list" ref="booklist" ></property>
+    </bean>
+
+</beans>
