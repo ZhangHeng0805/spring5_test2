@@ -1,0 +1,260 @@
+# spring5_test2
+# Spring5框架——Bean管理（xml注入属性）
+## IOC操作Bean管理（xml注入集合类型属性）
+   ### 1.注入数组类型
+   ### 2.注入List集合类型
+   ### 3.注入Map集合类型
+       （1）创建类，定义数组、list、map、set
+        public class Stu {
+            //1.数组类型
+            private String[] courses;
+            //2.list集合类型
+            private List<String> list;
+            //3.map集合类型
+            private Map<String,String> maps;
+            //4.set集合类型
+            private Set<String> sets;
+            public void setCourses(String[] courses) {
+                this.courses = courses;
+            }
+            public void setList(List<String> list) {
+                this.list = list;
+            }
+            public void setMaps(Map<String, String> maps) {
+                this.maps = maps;
+            }
+            public void setSets(Set<String> sets) {
+                this.sets = sets;
+            }
+        }
+        （2）在spring配置文件中进行配置
+        <!--集合类型的注入-->
+            <bean id="stu" class="zh.spring5.collectiontype.Stu">
+                <!--数组类型-->
+                <property name="courses">
+                    <array>
+                        <value>js</value>
+                        <value>python</value>
+                        <value>c#</value>
+                    </array>
+                </property>
+                <!--list集合类型-->
+                <property name="list">
+                    <list>
+                        <value>张三</value>
+                        <value>仙三</value>
+                        <value>小三</value>
+                    </list>
+                </property>
+                <!--map类型-->
+                <property name="maps">
+                    <map>
+                        <entry key="JAVA" value="java"></entry>
+                        <entry key="PHP" value="php"></entry>
+                    </map>
+                </property>
+                <!--set类型-->
+                <property name="sets">
+                    <set>
+                        <value>MySQL</value>
+                        <value>Redis</value>
+                    </set>
+                </property>
+            </bean>
+   ### 4.在集合里面设置对象类型值
+    <!--创建多个course对象-->
+        <bean id="cou1" class="zh.spring5.collectiontype.Course">
+            <property name="cname" value="Spring5框架"></property>
+        </bean>
+        <bean id="cou2" class="zh.spring5.collectiontype.Course">
+            <property name="cname" value="js框架"></property>
+        </bean>
+        <bean id="cou3" class="zh.spring5.collectiontype.Course">
+            <property name="cname" value="MyBatis框架"></property>
+        </bean>
+     <!--注入list集合类型，值是对象-->
+             <property name="courseList">
+                 <list>
+                     <ref bean="cou1"></ref>
+                     <ref bean="cou2"></ref>
+                     <ref bean="cou3"></ref>
+                 </list>
+             </property>
+   ### 5.把集合注入部分提取出来
+        (1)在spring配置文件中引入名称空间 util
+        添加：xmlns:util="http://www.springframework.org/schema/util"
+        修改：xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                                       http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd"
+        （2）使用util标签完成list集合注入提取
+        <!--提取list集合类型的注入-->
+            <util:list id="booklist">
+                <value>易筋经</value>
+                <value>九阳神功</value>
+                <value>玉女心经</value>
+            </util:list>
+        <!--提取list集合类型属性注入使用-->
+        <bean id="book" class="zh.spring5.collectiontype.Book">
+            <property name="list" ref="booklist"></property>
+        </bean>
+## IOC操作Bean管理（FactoryBean）
+   ### 1.Spring有两种类型的bean，一种普通bean，另一种工厂bean（FactoryBean）
+   ### 2.普通bean：在配置文件中定义bean类型就是返回类型
+   ### 3.工厂bean：在配置文件定义bean，类型可以和返回值不一样
+    第一步 创建类，让这个类作为工厂bean，实现接口FactoryBean
+    第二步 实现接口里面的方法，在实现的方法中定义返回的bean类型
+    public class MyBean implements FactoryBean<Course> {
+        //定义返回类型
+        @Override
+        public Course getObject() throws Exception {
+            Course course=new Course();
+            course.setCname("123");
+            return course;
+        }
+        @Override
+        public Class<?> getObjectType() {
+            return null;
+        }
+        @Override
+        public boolean isSingleton() {
+            return false;
+        }
+    }
+    @Test
+        public void testCollection3(){
+            ApplicationContext context=new ClassPathXmlApplicationContext("bean3.xml");
+            Course course=context.getBean("myBean", Course.class);
+            System.out.println(course);
+        }
+## IOC操作Bean管理（bean的作用域）
+   ### 1.在spring中，设置创建bean实例是单实例还是多实例
+   ### 2.在Spring中，默认情况下，bean是单实例
+   ### 3.如何设置单实例还是多实例
+        （1）在spring配置文件bean标签中有属性(scope)用于设置单实例还是多实例
+        （2）属性值
+            第一个值 默认值singleton,表示单实例对象
+            第二个值 prototype，表示多实例对象
+        <bean id="book" class="zh.spring5.collectiontype.Book" scope="prototype">
+                <property name="list" ref="booklist" ></property>
+        </bean>
+        Book book1=context.getBean("book",Book.class);
+        Book book2=context.getBean("book",Book.class);
+        打印地址：（不同）
+        zh.spring5.collectiontype.Book@376b4233
+        zh.spring5.collectiontype.Book@2fd66ad3
+        （3）singleton和prototype区别
+            第一 singleton单实例，prototype多实例
+            第二 设置scope值是singleton时候，加载spring配置文件时候就会创建单实例对象
+                 设置scope值是prototype时候，不是在加载spring配置文件时创建，而是在调用getBean方法时候创建多实例对象
+
+## IOC操作Bean管理（bean的生命周期）
+   ### 1.生命周期
+        （1）从对象创建到对象销毁的过程
+   ### 2.bean生命周期
+        （1）通过构造器创建bean实例（无参数构造）
+        （2）为bean的属性设置值和对其他bean引用（调用set方法）
+        （3）调用bean的初始化的方法（需要进行配置）
+        （4）bean可以使用了（对象获取到了）
+        （5）当容器关闭时，调用bean的销毁方法（需要进行配置销毁的方法）
+   ### 3.演示bean的生命周期
+        public class Orders {
+            public Orders() {
+                System.out.println("第一步 执行无参数构造创建bean实例");
+            }
+            private String oname;
+            public void setOname(String oname) {
+                this.oname = oname;
+                System.out.println("第二步 调用set方法设置属性值");
+            }
+            public void initMethod(){
+                System.out.println("第三步 执行初始化方法");
+            }
+            public void destroyMethod(){
+                System.out.println("第五步 执行销毁方法");
+            }
+        }
+        init-method属性：初始化方法；destroy-method属性：销毁方法
+        <bean id="orders" class="zh.spring5.bean.Orders" init-method="initMethod" destroy-method="destroyMethod">
+            <property name="oname" value="手机"></property>
+        </bean>
+        @Test//bean的生命周期
+            public void testBean4(){
+                ApplicationContext context=new ClassPathXmlApplicationContext("bean4.xml");
+                Orders orders=context.getBean("orders", Orders.class);
+                System.out.println("第四步 获取创建bean实例对象");
+                System.out.println(orders);
+                //手动让bean实例销毁
+                ((ClassPathXmlApplicationContext)context).close();
+            }
+   ### 4.bean的后置处理器（bean的生命周期有七步）
+        （1）通过构造器创建bean实例（无参数构造）
+        （2）为bean的属性设置值和对其他bean引用（调用set方法）
+        （3）把bean的实例传递bean的后置处理器的方法(postProcessBeforeInitialization)
+        （4）调用bean的初始化的方法（需要进行配置）
+        （5）把bean的实例传递bean的后置处理器的方法(postProcessAfterInitialization)
+        （6）bean可以使用了（对象获取到了）
+        （7）当容器关闭时，调用bean的销毁方法（需要进行配置销毁的方法）
+   ### 5.演示添加后置处理器效果
+        （1）创建类，实现借口BeanPostProcessor，创建后置处理器
+        public class MyBeanPost implements BeanPostProcessor {
+            @Override
+            public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+                System.out.println("在初始化之前执行的方法");
+                return bean;
+            }
+            @Override
+            public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+                System.out.println("在初始化之后执行的方法");
+                return bean;
+            }
+        }
+        <!--配置后置处理器
+            使当前配置文件中的所有bean便签添加后置处理器
+        -->
+        <bean id="myBeanPost" class="zh.spring5.bean.MyBeanPost"></bean>
+## IOC操作Bean管理（xml自动装配）
+  ### 1、什么是自动装配
+        （1）根据指定的装配规则（属性名称或者属性类型），Spring自动将匹配的属性值进行注入
+   ### 2、演示自动装配过程
+    <!--实现自动装配
+        bean标签属性autowire，配置自动装配
+        autowire有两个常用的值：byName和byType
+            byName根据属性名称注入，注入值bean的id值和类属性名称一样
+            byType根据属性类型注入，根据属性类型自动注入相同类型的值
+    -->
+    <bean id="emp" class="zh.spring5.autowire.Emp" autowire="byType">
+    </bean>
+    <bean id="dept" class="zh.spring5.autowire.Dept"></bean>
+
+IOC操作Bean管理（引入外部属性文件）
+   ### 1.直接配置数据库信息
+        （1）配置德鲁伊连接池
+        （2）引入德鲁伊连接池的依赖jar包
+        <!--直接配置连接池-->
+            <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+                <property name="driverClassName" value="com.mysql.jdbc.Driver"></property>
+                <property name="url" value="jdbc:mysql://localhost:3306/userDb"></property>
+                <property name="username" value="root"></property>
+                <property name="password" value="root"></property>
+            </bean>
+   ### 2.引入外部属性文件配置数据库连接池
+    (1)创建外部属性文件，properties格式文件，写数据库信息
+        prop.driverClass=com.mysql.jdbc.Driver
+        prop.url=jdbc:mysql://localhost:3306/userDb
+        prop.userName=root
+        prop.passWord=root
+    (2)把外部properties属性文件引入到spring配置文件中
+        *引入context
+            添加：xmlns:context="http://www.springframework.org/schema/context"
+            修改：xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                                      http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+                                      http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd"
+        *在spring配置文件使用标签引入外部属性文件
+        <!--引入外部属性文件-->
+            <context:property-placeholder location="jdbc.properties"/>
+            <!--配置连接池-->
+            <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+                <property name="driverClassName" value="${prop.driverClass}"></property>
+                <property name="url" value="${prop.url}"></property>
+                <property name="username" value="${prop.userName}"></property>
+                <property name="password" value="${prop.passWord}"></property>
+            </bean>
